@@ -38,11 +38,82 @@ function JupiterWalletRoot() {
   return React.createElement(
     WalletProvider,
     { wallets, autoConnect: true },
-    React.createElement(JupiterMobileBridge, { jupiterAdapter })
+    React.createElement(JupiterMobileBridge, { reownAdapter, jupiterAdapter })
   );
 }
 
-function JupiterMobileBridge({ jupiterAdapter }) {
+function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
+  useEffect(() => {
+    if (!reownAdapter) return;
+    const api = Object.freeze({
+      setChain(chain) {
+        if (chain !== MAINNET_CHAIN && chain !== DEVNET_CHAIN) throw new Error("Unsupported Solana wallet chain.");
+        activeChain = chain;
+      },
+      async connect(expectedAddress = "") {
+        if (activeChain !== MAINNET_CHAIN) {
+          throw new Error("WalletConnect mobile signing is currently enabled for mainnet only.");
+        }
+        await reownAdapter.connect();
+        const address = reownAdapter.publicKey?.toBase58?.() || "";
+        if (!address) throw new Error("WalletConnect did not return a Solana address.");
+        if (expectedAddress && address !== expectedAddress) {
+          throw new Error("WalletConnect connected " + address + ", but this action requires " + expectedAddress + ". Select the matching wallet account and retry.");
+        }
+        return address;
+      },
+      getAddress() {
+        return reownAdapter.publicKey?.toBase58?.() || "";
+      },
+      get connected() {
+        return Boolean(reownAdapter.connected && reownAdapter.publicKey);
+      },
+      canSignFor(expectedAddress) {
+        return Boolean(activeChain === MAINNET_CHAIN && reownAdapter.connected &&
+          reownAdapter.publicKey?.toBase58?.() === expectedAddress);
+      },
+      async signMessage(message, expectedAddress) {
+        if (!api.connected || api.getAddress() !== expectedAddress) {
+          throw new Error("The WalletConnect session does not match the registered wallet address. Reconnect the matching account and retry.");
+        }
+        const signature = await reownAdapter.signMessage(new TextEncoder().encode(message));
+        if (!(signature instanceof Uint8Array) || signature.length !== 64) {
+          throw new Error("WalletConnect returned an unsupported message-signature format.");
+        }
+        return signature;
+      },
+      async signTransaction(transaction, expectedAddress) {
+        if (!api.canSignFor(expectedAddress)) {
+          throw new Error("The WalletConnect session does not match the required transaction signer.");
+        }
+        const signed = await reownAdapter.signTransaction(transaction);
+        const signature = signed?.signatures?.find(item => item.publicKey?.toBase58?.() === expectedAddress)?.signature;
+        if (!signed || typeof signed.serialize !== "function" ||
+            !(signature instanceof Uint8Array) || signature.every(byte => byte === 0)) {
+          throw new Error("WalletConnect did not return a transaction signed by the required business wallet.");
+        }
+        return signed;
+      },
+      async signFundingTransaction(transactionBytes, expectedAddress) {
+        if (!(transactionBytes instanceof Uint8Array) || transactionBytes.length < 100 || transactionBytes.length > 16384) {
+          throw new Error("The prepared funding transaction bytes are invalid.");
+        }
+        const signed = await api.signTransaction(Transaction.from(transactionBytes), expectedAddress);
+        return new Uint8Array(signed.serialize({ requireAllSignatures: false, verifySignatures: false }));
+      },
+      async disconnect() {
+        if (reownAdapter.connected && typeof reownAdapter.disconnect === "function") {
+          await reownAdapter.disconnect();
+        }
+      }
+    });
+    window.NERITHREOWN = api;
+    window.dispatchEvent(new CustomEvent("nerith:reown-ready"));
+    return () => {
+      if (window.NERITHREOWN === api) delete window.NERITHREOWN;
+    };
+  }, [reownAdapter]);
+
   useEffect(() => {
     if (!jupiterAdapter) return;
     const adapter = jupiterAdapter;
