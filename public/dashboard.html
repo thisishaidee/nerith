@@ -1207,7 +1207,7 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
       // the separate OKX SDK initialization to finish.
       choices.forEach(choice=>{
         if(choice.dataset.walletChoice==="okx")setDisabled(choice,true);
-        else if(choice.dataset.walletChoice==="jupiter")setDisabled(choice,!window.NERITHJUPITER?.connect);
+        else if(choice.dataset.walletChoice==="jupiter")setDisabled(choice,activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHJUPITER?.connect);
         else setDisabled(choice,false);
       });
       $("walletChooserHelp").textContent="Choose a wallet. App links open directly from your tap; other wallet connections are prepared separately. NERITH only requests your public address and an ownership message signature.";
@@ -1238,7 +1238,9 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
   window.addEventListener("nerith:jupiter-ready",()=>{
     const chooser=$("walletChooser");
     const jupiter=chooser?.querySelector('[data-wallet-choice="jupiter"]');
-    if(jupiter&&chooser.dataset.networkReady==="true")jupiter.disabled=false;
+    if(!jupiter||chooser.dataset.networkReady!=="true")return;
+    window.NERITHJUPITER?.setChain?.(activeSolanaChain);
+    jupiter.disabled=activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHJUPITER?.connect;
   });
   $("walletConnectStatus")?.addEventListener("click",async event=>{
     if(event.target.id!=="signNewWalletOwnership"||!pendingWalletVerification)return;
