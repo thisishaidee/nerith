@@ -3,6 +3,8 @@ import { landingHtml } from "../src/landing";
 import { controlHtml } from "../src/control";
 import { businessDashboardHtml } from "../src/business-dashboard";
 import { dashboardHtml } from "../src/dashboard";
+import { okxWalletConnectorJs } from "../src/okx-wallet-connector";
+import { jupiterMobileConnectorJs } from "../src/jupiter-mobile-connector";
 
 describe("responsive page source contracts", () => {
   const pages = [
@@ -41,6 +43,102 @@ describe("responsive page source contracts", () => {
       expect(entry.html).toContain('viewBox="0 0 652 524"');
       expect(entry.html).toMatch(/fill="(?:#CFF86B|#DFFF00|currentColor)"/);
     }
+  });
+
+  it("provides responsive business wallet role controls without implying signing authority", () => {
+    expect(businessDashboardHtml).toContain('id="walletRolesList"');
+    expect(businessDashboardHtml).toContain('data-wallet-role-form');
+    expect(businessDashboardHtml).toContain('wallet-role-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));');
+    expect(businessDashboardHtml).toContain('@media(max-width:560px){.wallet-role-form{grid-template-columns:1fr}');
+    expect(businessDashboardHtml).toContain("A wallet role does not grant signing authority.");
+    expect(businessDashboardHtml).toContain('/v1/admin/wallet-roles?businessId=');
+  });
+
+  it("requires an owner-signed, domain-bound wallet challenge before role assignment", () => {
+    expect(businessDashboardHtml).toContain('data-verify-wallet');
+    expect(businessDashboardHtml).toContain('/v1/admin/wallet-ownership/challenge');
+    expect(businessDashboardHtml).toContain('/v1/admin/wallet-ownership/verify');
+    expect(businessDashboardHtml).toContain('window.okxwallet?.solana');
+    expect(businessDashboardHtml).toContain('window.phantom?.solana');
+    expect(businessDashboardHtml).toContain('wallet-standard:register-wallet');
+    expect(businessDashboardHtml).toContain('wallet-standard:app-ready');
+    expect(businessDashboardHtml).toContain('solana:signMessage');
+    expect(businessDashboardHtml).toContain('solana:mainnet');
+    expect(businessDashboardHtml).toContain('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
+    expect(businessDashboardHtml).toContain('const canManage=["owner","admin"].includes(state.role)');
+    expect(businessDashboardHtml).toContain("The signing wallet changed accounts.");
+    expect(businessDashboardHtml).toContain('A workspace admin must sign a short-lived message');
+    expect(businessDashboardHtml).toContain('Verify address control before assigning or enabling a business role.');
+  });
+
+  it("provides a responsive business payment inbox with wallet signing and settlement actions", () => {
+    expect(businessDashboardHtml).toContain('id="page-payments"');
+    expect(businessDashboardHtml).toContain('id="paymentIntentsList"');
+    expect(businessDashboardHtml).toContain('data-prepare-funding-leg');
+    expect(businessDashboardHtml).toContain('data-reconcile-funding-leg');
+    expect(businessDashboardHtml).toContain('solana:signTransaction');
+    expect(businessDashboardHtml).toContain('/submit-signed');
+    expect(businessDashboardHtml).toContain('/v1/admin/payment-intents?businessId=');
+    expect(businessDashboardHtml).toContain('@media(max-width:560px)');
+    expect(businessDashboardHtml).toContain('overflow-wrap:anywhere');
+    expect(businessDashboardHtml).toContain('const canManagePayments = ["owner","admin"].includes(state.role);');
+    expect(businessDashboardHtml).toContain('for (const signerAddress of prepared.requiredSigners || [])');
+    expect(businessDashboardHtml).toContain("function extractLegacyMessageBytes(transactionBytes)");
+    expect(businessDashboardHtml).toContain("sha256Hex(extractLegacyMessageBytes(signedTransaction)) !== prepared.messageSha256");
+    expect(businessDashboardHtml).toContain('["planned","blocked","reserved"].includes(leg.status)');
+    expect(businessDashboardHtml).toContain(".wallet-role-help{margin-top:9px;color:var(--muted);font-size:10px;line-height:1.6;overflow-wrap:anywhere;word-break:break-word}");
+  });
+
+  it("loads the Worker-selected Solana cluster before wallet signing", () => {
+    expect(businessDashboardHtml).toContain("async function ensureSolanaNetworkConfig()");
+    expect(businessDashboardHtml).toContain('fetch("/health"');
+    expect(businessDashboardHtml).toContain("payload.solanaChainId");
+    expect(businessDashboardHtml).toContain("window.NERITHOKX?.setChain?.(activeSolanaChain)");
+    expect(businessDashboardHtml).toContain("window.NERITHJUPITER?.setChain?.(activeSolanaChain)");
+    expect(businessDashboardHtml).toContain("SOLANA_DEVNET_CHAIN");
+    expect(businessDashboardHtml).toContain("Hermes x402 payment is currently mainnet-only");
+  });
+
+  it("prepares the Solana network before wallet selection so app handoff keeps the tap gesture", () => {
+    const connectStart=businessDashboardHtml.indexOf("async function connectSolanaWallet(");
+    const connectEnd=businessDashboardHtml.indexOf("async function signOwnershipChallenge(",connectStart);
+    const connectSource=businessDashboardHtml.slice(connectStart,connectEnd);
+    expect(connectSource).toContain("if(!solanaNetworkConfigReady)");
+    expect(connectSource).not.toContain("await ensureSolanaNetworkConfig()");
+    expect(connectSource).not.toContain('if(!injected&&window.NERITHOKX?.connect)return await window.NERITHOKX.connect()');
+    expect(businessDashboardHtml).toContain('const choices=[...chooser.querySelectorAll("[data-wallet-choice]")]');
+    expect(businessDashboardHtml).toContain("await ensureSolanaNetworkConfig()");
+    expect(businessDashboardHtml).toContain('chooser.dataset.networkReady="true"');
+    expect(businessDashboardHtml).toContain('setDisabled(choice,activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHJUPITER?.connect)');
+    expect(businessDashboardHtml).toContain('jupiter.disabled=activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHJUPITER?.connect');
+    expect(businessDashboardHtml).toContain('window.addEventListener("nerith:jupiter-ready"');
+    expect(businessDashboardHtml).toContain('data-wallet-choice="reown"');
+    expect(businessDashboardHtml).toContain('window.addEventListener("nerith:reown-ready"');
+    expect(businessDashboardHtml).toContain('setDisabled(choice,activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHREOWN?.connect)');
+    const enableChoicesIndex=businessDashboardHtml.indexOf("choices.forEach(choice=>{",businessDashboardHtml.indexOf("const appLinks="));
+    const initializeOkxIndex=businessDashboardHtml.indexOf("await okx();");
+    expect(enableChoicesIndex).toBeGreaterThan(-1);
+    expect(enableChoicesIndex).toBeLessThan(initializeOkxIndex);
+    expect(businessDashboardHtml).toContain('.wallet-choice[aria-disabled="true"]{opacity:.5;cursor:not-allowed}');
+    expect(businessDashboardHtml).toContain('<a class="wallet-choice" data-wallet-choice="phantom"');
+    expect(businessDashboardHtml).toContain('phantom:"https://phantom.app/ul/browse/"+target+"?ref="+ref');
+    expect(businessDashboardHtml).toContain('solflare:"https://solflare.com/ul/v1/browse/"+target+"?ref="+ref');
+    expect(businessDashboardHtml).toContain('backpack:"https://backpack.app/ul/v1/browse/"+target+"?ref="+ref');
+    expect(businessDashboardHtml).not.toContain("window.location.assign(links[wallet])");
+    expect(businessDashboardHtml).toContain("Always separate connection from the ownership signature.");
+    expect(businessDashboardHtml).toContain('id="signNewWalletOwnership"');
+    expect(businessDashboardHtml).toContain('id="signExistingWalletOwnership"');
+  });
+
+  it("routes funding-leg signing through the connected OKX and Jupiter wallet adapters", () => {
+    expect(businessDashboardHtml).toContain('window.NERITHOKX?.canSignFor?.(signerAddress)');
+    expect(businessDashboardHtml).toContain('window.NERITHOKX.signFundingTransaction(transaction, signerAddress)');
+    expect(businessDashboardHtml).toContain('window.NERITHJUPITER?.canSignFor?.(signerAddress)');
+    expect(businessDashboardHtml).toContain('window.NERITHJUPITER.signFundingTransaction(transaction, signerAddress)');
+    expect(okxWalletConnectorJs).toContain("signFundingTransaction");
+    expect(okxWalletConnectorJs).toContain("canSignFor");
+    expect(jupiterMobileConnectorJs).toContain("signFundingTransaction");
+    expect(jupiterMobileConnectorJs).toContain("canSignFor");
   });
 
   it("declares business-dashboard action buttons as non-submit controls", () => {
