@@ -413,10 +413,8 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
       if(!window.NERITHOKX?.connect)throw new Error("The OKX Connect module did not load. Refresh and try again.");
       return await window.NERITHOKX.connect();
     }
-    // Start the OKX App Connect handoff before awaiting Wallet Standard adapters.
-    // Mobile browsers can lose the transient user gesture after an awaited adapter
-    // call, preventing Android from opening the OKX app.
-    if(!injected&&window.NERITHOKX?.connect)return await window.NERITHOKX.connect();
+    // Do not silently redirect a user who explicitly chose "Wallet in this browser"
+    // into OKX. App handoff is started only by the explicit OKX wallet choice above.
     for(const wallet of standardSolanaWallets){
       const connectFeature=wallet.features["standard:connect"];
       if(typeof connectFeature?.connect!=="function")continue;
