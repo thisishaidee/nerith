@@ -116,7 +116,7 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
       <section class="page" id="page-liquidity">
         <div class="page-head"><div><div class="pixel">Capital visibility / 03</div><h1>Liquidity</h1><p>Fresh wallet snapshots, internal reservations and eligible balances. x402 payment reserves remain isolated from operating liquidity.</p></div><div class="actions"><button type="button" class="btn" id="liquidityRefresh">Refresh ↻</button></div></div>
         <div class="grid metric-grid" id="liquidityMetrics"></div>
-        <div class="panel"><div class="panel-head"><div><div class="panel-title">Operating wallets</div><div class="panel-subtitle">Only purpose=operating contributes to the operating totals</div></div></div><div id="walletConnectPanel" class="wallet-onboard" hidden><div><strong>Connect a Solana wallet</strong><p class="wallet-role-help">Connect from your wallet app or browser. NERITH registers the public address, then asks you to sign a short ownership message. No transaction or network fee is involved.</p></div><div class="wallet-onboard-controls"><label class="wallet-purpose-label" for="walletPurpose">Wallet purpose<select id="walletPurpose" class="input"><option value="operating">Operating liquidity</option><option value="api_payment">x402 API fee reserve</option></select></label><button type="button" class="btn primary" id="connectBusinessWallet" aria-expanded="false" aria-controls="walletChooser">Choose wallet</button></div><div id="walletConnectStatus" class="wallet-role-help" role="status" aria-live="polite"></div></div><div id="walletChooser" class="wallet-chooser" hidden role="group" aria-label="Choose a Solana wallet"><div class="wallet-chooser-head"><strong>Choose your Solana wallet</strong><span>Opens the selected wallet app</span></div><div class="wallet-choice-grid"><button type="button" class="wallet-choice" data-wallet-choice="okx"><strong>OKX Wallet</strong><span>Open NERITH in OKX Wallet’s DApp browser</span></button><button type="button" class="wallet-choice" data-wallet-choice="phantom"><strong>Phantom</strong><span>Open this page in Phantom</span></button><button type="button" class="wallet-choice" data-wallet-choice="solflare"><strong>Solflare</strong><span>Open this page in Solflare</span></button><button type="button" class="wallet-choice" data-wallet-choice="backpack"><strong>Backpack</strong><span>Open this page in Backpack</span></button><button type="button" class="wallet-choice" data-wallet-choice="jupiter"><strong>Jupiter Mobile</strong><span>Connect to Jupiter Mobile through its secure WalletConnect handoff</span></button><button type="button" class="wallet-choice" data-wallet-choice="browser"><strong>Wallet in this browser</strong><span>Connect an already detected browser wallet</span></button></div><p id="walletChooserHelp" class="wallet-role-help" aria-live="polite">Choose a wallet. NERITH will only request your public address and a message signature to prove ownership.</p></div><div id="operatingWallets" class="grid wallet-grid"><div class="empty">Loading wallets…</div></div></div>
+        <div class="panel"><div class="panel-head"><div><div class="panel-title">Operating wallets</div><div class="panel-subtitle">Only purpose=operating contributes to the operating totals</div></div></div><div id="walletConnectPanel" class="wallet-onboard" hidden><div><strong>Connect a Solana wallet</strong><p class="wallet-role-help">Connect from your wallet app or browser. NERITH registers the public address, then asks you to sign a short ownership message. No transaction or network fee is involved.</p></div><div class="wallet-onboard-controls"><label class="wallet-purpose-label" for="walletPurpose">Wallet purpose<select id="walletPurpose" class="input"><option value="operating">Operating liquidity</option><option value="api_payment">x402 API fee reserve</option></select></label><button type="button" class="btn primary" id="connectBusinessWallet" aria-expanded="false" aria-controls="walletChooser">Choose wallet</button></div><div id="walletConnectStatus" class="wallet-role-help" role="status" aria-live="polite"></div></div><div id="walletChooser" class="wallet-chooser" hidden role="group" aria-label="Choose a Solana wallet"><div class="wallet-chooser-head"><strong>Choose your Solana wallet</strong><span>Opens the selected wallet app</span></div><div class="wallet-choice-grid"><button type="button" class="wallet-choice" data-wallet-choice="okx"><strong>OKX Wallet</strong><span>Open NERITH in OKX Wallet’s DApp browser</span></button><a class="wallet-choice" data-wallet-choice="phantom" target="_self" rel="noopener" aria-disabled="true" tabindex="-1"><strong>Phantom</strong><span>Open this page in Phantom</span></a><a class="wallet-choice" data-wallet-choice="solflare" target="_self" rel="noopener" aria-disabled="true" tabindex="-1"><strong>Solflare</strong><span>Open this page in Solflare</span></a><a class="wallet-choice" data-wallet-choice="backpack" target="_self" rel="noopener" aria-disabled="true" tabindex="-1"><strong>Backpack</strong><span>Open this page in Backpack</span></a><button type="button" class="wallet-choice" data-wallet-choice="jupiter"><strong>Jupiter Mobile</strong><span>Connect to Jupiter Mobile through its secure WalletConnect handoff</span></button><button type="button" class="wallet-choice" data-wallet-choice="browser"><strong>Wallet in this browser</strong><span>Connect an already detected browser wallet</span></button></div><p id="walletChooserHelp" class="wallet-role-help" aria-live="polite">Choose a wallet. NERITH will only request your public address and a message signature to prove ownership.</p></div><div id="operatingWallets" class="grid wallet-grid"><div class="empty">Loading wallets…</div></div></div>
         <div class="panel" style="margin-top:14px"><div class="panel-head x402-reserve-head"><div><div class="panel-title">x402 payment reserve</div><div class="panel-subtitle">purpose=api_payment · never included in operating totals or forecasts</div></div><button type="button" class="btn primary" id="connectX402Reserve" aria-controls="walletChooser">Connect x402 fee wallet</button></div><p class="wallet-role-help">Connect the separate wallet that will pay Swap.io API fees. NERITH will verify it with a message signature; no transaction is sent. This wallet is never counted as operating liquidity.</p><div id="paymentWallets" class="grid wallet-grid"><div class="empty">Loading payment reserve…</div></div></div>
         <section class="panel" id="x402DemoPanel" style="margin-top:14px" aria-labelledby="x402DemoTitle">
           <div class="panel-head"><div><div class="panel-title" id="x402DemoTitle">Swap.io x402 proof run</div><div class="panel-subtitle">One real paid quote request · no swap is executed</div></div></div>
@@ -1176,9 +1176,18 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
 
     const choices=[...chooser.querySelectorAll("[data-wallet-choice]")];
     const choiceFor=name=>choices.find(choice=>choice.dataset.walletChoice===name);
+    const setDisabled=(choice,disabled)=>{
+      if(!choice)return;
+      if("disabled" in choice)choice.disabled=disabled;
+      else{
+        choice.setAttribute("aria-disabled",String(disabled));
+        choice.tabIndex=disabled?-1:0;
+        if(disabled)choice.removeAttribute("href");
+      }
+    };
     const okxChoice=choiceFor("okx");
     if(okxChoice)okxChoice.title="";
-    choices.forEach(choice=>choice.disabled=true);
+    choices.forEach(choice=>setDisabled(choice,true));
     chooser.dataset.networkReady="false";
     $("walletChooserHelp").textContent="Preparing the secure wallet connection and confirming the Solana network…";
 
@@ -1196,15 +1205,26 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
         }
       }
       chooser.dataset.networkReady="true";
+      const target=encodeURIComponent(window.location.href);
+      const ref=encodeURIComponent(window.location.origin);
+      const appLinks={
+        phantom:"https://phantom.app/ul/browse/"+target+"?ref="+ref,
+        solflare:"https://solflare.com/ul/v1/browse/"+target+"?ref="+ref,
+        backpack:"https://backpack.app/ul/v1/browse/"+target+"?ref="+ref
+      };
+      for(const [name,url] of Object.entries(appLinks)){
+        const link=choiceFor(name);
+        if(link)link.href=url;
+      }
       choices.forEach(choice=>{
-        if(choice.dataset.walletChoice==="jupiter")choice.disabled=!window.NERITHJUPITER?.connect;
-        else if(choice.dataset.walletChoice==="okx")choice.disabled=Boolean(choice.title&&choice.title.startsWith("OKX connection could not initialize"));
-        else choice.disabled=false;
+        if(choice.dataset.walletChoice==="jupiter")setDisabled(choice,!window.NERITHJUPITER?.connect);
+        else if(choice.dataset.walletChoice==="okx")setDisabled(choice,Boolean(choice.title&&choice.title.startsWith("OKX connection could not initialize")));
+        else setDisabled(choice,false);
       });
-      $("walletChooserHelp").textContent="Choose a wallet. The network is ready; your tap will now start the wallet connection. NERITH only requests your public address and an ownership message signature.";
+      $("walletChooserHelp").textContent="Choose a wallet. App links open directly from your tap; browser wallets connect in place. NERITH only requests your public address and an ownership message signature.";
     }catch(error){
       chooser.dataset.networkReady="false";
-      choices.forEach(choice=>choice.disabled=true);
+      choices.forEach(choice=>setDisabled(choice,true));
       $("walletChooserHelp").textContent="NERITH could not confirm the configured Solana network: "+String(error.message||error)+". Close this chooser and tap Choose wallet again to retry.";
     }
   });
@@ -1231,15 +1251,10 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     const currentUrl=window.location.href;
     const origin=window.location.origin;
     if(wallet==="phantom"||wallet==="solflare"||wallet==="backpack"){
-      const target=encodeURIComponent(currentUrl);
-      const ref=encodeURIComponent(origin);
-      const links={
-        phantom:"https://phantom.app/ul/browse/"+target+"?ref="+ref,
-        solflare:"https://solflare.com/ul/v1/browse/"+target+"?ref="+ref,
-        backpack:"https://backpack.app/ul/v1/browse/"+target+"?ref="+ref
-      };
-      $("walletChooserHelp").textContent="Opening "+wallet.charAt(0).toUpperCase()+wallet.slice(1)+". Once NERITH opens inside that wallet, tap Choose wallet and select Wallet in this browser.";
-      window.location.assign(links[wallet]);
+      if(choice.getAttribute("aria-disabled")==="true"){event.preventDefault();return;}
+      $("walletChooserHelp").textContent="Opening NERITH inside "+wallet.charAt(0).toUpperCase()+wallet.slice(1)+". Connect from the wallet's in-app browser.";
+      // The clicked element is a real anchor with its universal-link href already set.
+      // Let the browser handle the end-user click instead of script-initiated navigation.
       return;
     }
     if(pendingExistingWalletVerification){
