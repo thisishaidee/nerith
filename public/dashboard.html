@@ -1200,8 +1200,9 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
         try{await okx();}
         catch(error){
           const okxChoice=choiceFor("okx");
-          if(okxChoice)okxChoice.disabled=true;
-          if(okxChoice)okxChoice.title="OKX connection could not initialize. Close and reopen the wallet chooser to retry.";
+          if(okxChoice&&!window.okxwallet?.solana?.connect){
+            okxChoice.title="OKX connection could not initialize. Close and reopen the wallet chooser to retry.";
+          }
         }
       }
       chooser.dataset.networkReady="true";
