@@ -976,16 +976,12 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
         const registered=await apiWrite("/v1/admin/wallets",{businessId:state.businessId,network:"solana",address,scope:"business",purpose});
         registeredWalletId=registered.walletId;
       }
-      if(preferredWallet==="okx"||preferredWallet==="jupiter"){
-        await prepareWalletOwnershipChallenge(registeredWalletId,address);
-        pendingWalletVerification={walletId:registeredWalletId,address,preferredWallet};
-        status.innerHTML='Wallet registered. Tap <button type="button" class="btn primary" id="signNewWalletOwnership">Sign ownership message</button> to confirm address control. This signature does not move funds.';
-        return;
-      }
+      // Always separate connection from the ownership signature. Preparing the
+      // server challenge is asynchronous, so signing needs its own fresh user tap.
       await prepareWalletOwnershipChallenge(registeredWalletId,address);
-      status.textContent="Wallet registered. Sign the ownership message in your wallet to finish verification…";
-      await verifyWalletOwnershipWithWallet(registeredWalletId,address,button,preferredWallet);
-      status.textContent="Wallet connected and ownership verified. You can now assign its business role below.";
+      pendingWalletVerification={walletId:registeredWalletId,address,preferredWallet};
+      status.innerHTML='Wallet connected and registered. Tap <button type="button" class="btn primary" id="signNewWalletOwnership">Sign ownership message</button> to confirm address control. This signature does not move funds.';
+      return;
     }catch(error){
       const message=String(error.message||error);
       if(registeredWalletId){status.textContent="Wallet registered but not verified. It remains in your wallet list; retry ownership verification there. "+message;try{await loadAll();}catch{}}
@@ -1244,6 +1240,19 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
       $("walletConnectStatus").textContent="Wallet connected and ownership verified. You can now assign its business role below.";
     }catch(error){showError("Wallet ownership verification failed: "+String(error.message||error));}
   });
+  $("walletConnectPanel")?.addEventListener("click",async event=>{
+    if(event.target.id!=="signExistingWalletOwnership"||!pendingExistingWalletVerification?.awaitingSignature)return;
+    const button=event.target;
+    const pending=pendingExistingWalletVerification;
+    button.disabled=true;
+    try{
+      await verifyWalletOwnershipWithWallet(pending.walletId,pending.address,pending.button,pending.preferredWallet||"");
+      pendingExistingWalletVerification=null;
+    }catch(error){
+      showError("Wallet ownership verification failed: "+String(error.message||error));
+      button.disabled=false;
+    }
+  });
 
   $("walletChooser")?.addEventListener("click",async event=>{
     const choice=event.target.closest("[data-wallet-choice]");
@@ -1269,17 +1278,21 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
           throw new Error("The connected wallet is "+connectedAddress+", but this registered wallet is "+pending.address+". Switch to the wallet that owns this exact address and retry.");
         }
         await prepareWalletOwnershipChallenge(pending.walletId,pending.address);
-        if(pending.help)pending.help.textContent="Wallet connected. Approve the ownership message in the wallet app. No transaction or network fee is involved.";
-        await verifyWalletOwnershipWithWallet(pending.walletId,pending.address,pending.button,wallet);
-        if(pending.help)pending.help.textContent="Address control verified. You can now assign a business role below.";
+        pendingExistingWalletVerification={...pending,preferredWallet:wallet,awaitingSignature:true};
+        pending.button.disabled=false;
+        pending.button.textContent="Wallet connected";
+        if(pending.help)pending.help.innerHTML='Wallet connected. Tap <button type="button" class="btn primary" id="signExistingWalletOwnership">Sign ownership message</button> to confirm address control. This signature does not move funds.';
+        return;
       }catch(error){
         const message=String(error.message||error);
         pending.button.textContent="Retry ownership check";
-        if(pending.help)pending.help.textContent="Verification did not complete: "+message;
+        if(pending.help)pending.help.textContent="Connection did not complete: "+message;
         showError("Wallet ownership verification failed: "+message);
       }finally{
-        pending.button.disabled=false;
-        pendingExistingWalletVerification=null;
+        if(!pendingExistingWalletVerification?.awaitingSignature){
+          pending.button.disabled=false;
+          pendingExistingWalletVerification=null;
+        }
       }
       return;
     }
