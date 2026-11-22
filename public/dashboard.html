@@ -322,6 +322,7 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
   const knownSolanaChains=new Set([SOLANA_MAINNET_CHAIN,SOLANA_DEVNET_CHAIN,"solana:mainnet","solana:devnet"]);
   let activeSolanaChain=SOLANA_MAINNET_CHAIN;
   let solanaNetworkConfigPromise=null;
+  let solanaNetworkConfigReady=false;
   const supportsActiveSolanaChain=chains=>Array.isArray(chains)&&chains.some(chain=>
     chain===activeSolanaChain||(activeSolanaChain===SOLANA_MAINNET_CHAIN&&chain==="solana:mainnet")||(activeSolanaChain===SOLANA_DEVNET_CHAIN&&chain==="solana:devnet"));
   const supportsAnySolanaChain=chains=>Array.isArray(chains)&&chains.some(chain=>knownSolanaChains.has(chain));
@@ -335,8 +336,9 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
         activeSolanaChain=payload.solanaChainId;
         window.NERITHOKX?.setChain?.(activeSolanaChain);
         window.NERITHJUPITER?.setChain?.(activeSolanaChain);
+        solanaNetworkConfigReady=true;
         return activeSolanaChain;
-      })().catch(error=>{solanaNetworkConfigPromise=null;throw error;});
+      })().catch(error=>{solanaNetworkConfigReady=false;solanaNetworkConfigPromise=null;throw error;});
     }
     return solanaNetworkConfigPromise;
   }
@@ -394,7 +396,9 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     throw new Error("The selected fee wallet is not connected with transaction-signing permission. Reconnect it, then request a fresh quote.");
   }
   async function connectSolanaWallet(preferredWallet="",expectedAddress="") {
-    await ensureSolanaNetworkConfig();
+    // The chooser preloads the network before the wallet is tapped. Never await
+    // network I/O here: mobile browsers can drop the app-launch user activation.
+    if(!solanaNetworkConfigReady)throw new Error("NERITH is still confirming the Solana network. Close the wallet chooser, wait a moment, and open it again.");
     if(preferredWallet==="jupiter"){
       if(!window.NERITHJUPITER?.connect)throw new Error("The Jupiter Mobile connector is still loading. Refresh the dashboard and try again.");
       return await window.NERITHJUPITER.connect(expectedAddress);
@@ -1165,12 +1169,49 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     $("connectBusinessWallet")?.click();
   });
 
-  $("connectBusinessWallet")?.addEventListener("click",()=>{
+  $("connectBusinessWallet")?.addEventListener("click",async()=>{
     const chooser=$("walletChooser");
     const open=chooser.hidden;
     chooser.hidden=!open;
     $("connectBusinessWallet").setAttribute("aria-expanded",String(open));
-    if(open)$("walletChooserHelp").textContent="Choose a wallet. NERITH will only request your public address and a message signature to prove ownership.";
+    if(!open)return;
+
+    const choices=[...chooser.querySelectorAll("[data-wallet-choice]")];
+    const choiceFor=name=>choices.find(choice=>choice.dataset.walletChoice===name);
+    choices.forEach(choice=>choice.disabled=true);
+    chooser.dataset.networkReady="false";
+    $("walletChooserHelp").textContent="Preparing the secure wallet connection and confirming the Solana network…";
+
+    try{
+      // Finish all asynchronous setup while the user is choosing a wallet.
+      // The next tap on a wallet option can then launch/connect synchronously.
+      await ensureSolanaNetworkConfig();
+      const okx=window.NERITHOKX?.initialize;
+      if(typeof okx==="function"){
+        try{await okx();}
+        catch(error){
+          const okxChoice=choiceFor("okx");
+          if(okxChoice)okxChoice.disabled=true;
+          if(okxChoice)okxChoice.title="OKX connection could not initialize. Close and reopen the wallet chooser to retry.";
+        }
+      }
+      chooser.dataset.networkReady="true";
+      choices.forEach(choice=>{
+        if(choice.dataset.walletChoice==="jupiter")choice.disabled=!window.NERITHJUPITER?.connect;
+        else if(choice.dataset.walletChoice==="okx")choice.disabled=Boolean(choice.title&&choice.title.startsWith("OKX connection could not initialize"));
+        else choice.disabled=false;
+      });
+      $("walletChooserHelp").textContent="Choose a wallet. The network is ready; your tap will now start the wallet connection. NERITH only requests your public address and an ownership message signature.";
+    }catch(error){
+      chooser.dataset.networkReady="false";
+      choices.forEach(choice=>choice.disabled=true);
+      $("walletChooserHelp").textContent="NERITH could not confirm the configured Solana network: "+String(error.message||error)+". Close this chooser and tap Choose wallet again to retry.";
+    }
+  });
+  window.addEventListener("nerith:jupiter-ready",()=>{
+    const chooser=$("walletChooser");
+    const jupiter=chooser?.querySelector('[data-wallet-choice="jupiter"]');
+    if(jupiter&&chooser.dataset.networkReady==="true")jupiter.disabled=false;
   });
   $("walletConnectStatus")?.addEventListener("click",async event=>{
     if(event.target.id!=="signNewWalletOwnership"||!pendingWalletVerification)return;
