@@ -105,6 +105,7 @@ describe("responsive page source contracts", () => {
     const connectSource=businessDashboardHtml.slice(connectStart,connectEnd);
     expect(connectSource).toContain("if(!solanaNetworkConfigReady)");
     expect(connectSource).not.toContain("await ensureSolanaNetworkConfig()");
+    expect(connectSource).not.toContain('if(!injected&&window.NERITHOKX?.connect)return await window.NERITHOKX.connect()');
     expect(businessDashboardHtml).toContain('const choices=[...chooser.querySelectorAll("[data-wallet-choice]")]');
     expect(businessDashboardHtml).toContain("await ensureSolanaNetworkConfig()");
     expect(businessDashboardHtml).toContain('chooser.dataset.networkReady="true"');
