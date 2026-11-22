@@ -99,6 +99,19 @@ describe("responsive page source contracts", () => {
     expect(businessDashboardHtml).toContain("Hermes x402 payment is currently mainnet-only");
   });
 
+  it("prepares the Solana network before wallet selection so app handoff keeps the tap gesture", () => {
+    const connectStart=businessDashboardHtml.indexOf("async function connectSolanaWallet(");
+    const connectEnd=businessDashboardHtml.indexOf("async function signOwnershipChallenge(",connectStart);
+    const connectSource=businessDashboardHtml.slice(connectStart,connectEnd);
+    expect(connectSource).toContain("if(!solanaNetworkConfigReady)");
+    expect(connectSource).not.toContain("await ensureSolanaNetworkConfig()");
+    expect(businessDashboardHtml).toContain('const choices=[...chooser.querySelectorAll("[data-wallet-choice]")]');
+    expect(businessDashboardHtml).toContain("await ensureSolanaNetworkConfig()");
+    expect(businessDashboardHtml).toContain('chooser.dataset.networkReady="true"');
+    expect(businessDashboardHtml).toContain('choice.disabled=!window.NERITHJUPITER?.connect');
+    expect(businessDashboardHtml).toContain('window.addEventListener("nerith:jupiter-ready"');
+  });
+
   it("routes funding-leg signing through the connected OKX and Jupiter wallet adapters", () => {
     expect(businessDashboardHtml).toContain('window.NERITHOKX?.canSignFor?.(signerAddress)');
     expect(businessDashboardHtml).toContain('window.NERITHOKX.signFundingTransaction(transaction, signerAddress)');
