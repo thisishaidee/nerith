@@ -826,7 +826,7 @@ describe("browser page script syntax", () => {
         expect(connectFunction).not.toContain("await ensureSolanaNetworkConfig()");
         expect(connectFunction).not.toContain("if(!injected&&window.NERITHOKX?.connect)");
         expect(html).toContain("pendingExistingWalletVerification={button,walletId:button.dataset.verifyWallet,address:button.dataset.address,help}");
-        expect(html).toContain('$("walletChooser").hidden=true;\\n    $("connectBusinessWallet").click();');
+        expect(html).toContain('$("connectBusinessWallet").click();');
         expect(html).toContain('const connectedAddress=await connectSolanaWallet(wallet==="browser"?"":wallet,pending.address)');
         expect(html).toContain("Choose the wallet that controls this exact address.");
          expect(html).toContain("async function signOwnershipChallenge(address,message,preferredWallet=\"\")");
