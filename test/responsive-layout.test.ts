@@ -112,6 +112,9 @@ describe("responsive page source contracts", () => {
     expect(businessDashboardHtml).toContain('setDisabled(choice,activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHJUPITER?.connect)');
     expect(businessDashboardHtml).toContain('jupiter.disabled=activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHJUPITER?.connect');
     expect(businessDashboardHtml).toContain('window.addEventListener("nerith:jupiter-ready"');
+    expect(businessDashboardHtml).toContain('data-wallet-choice="reown"');
+    expect(businessDashboardHtml).toContain('window.addEventListener("nerith:reown-ready"');
+    expect(businessDashboardHtml).toContain('setDisabled(choice,activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHREOWN?.connect)');
     const enableChoicesIndex=businessDashboardHtml.indexOf("choices.forEach(choice=>{",businessDashboardHtml.indexOf("const appLinks="));
     const initializeOkxIndex=businessDashboardHtml.indexOf("await okx();");
     expect(enableChoicesIndex).toBeGreaterThan(-1);
