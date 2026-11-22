@@ -1248,8 +1248,6 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     const choice=event.target.closest("[data-wallet-choice]");
     if(!choice)return;
     const wallet=choice.dataset.walletChoice;
-    const currentUrl=window.location.href;
-    const origin=window.location.origin;
     if(wallet==="phantom"||wallet==="solflare"||wallet==="backpack"){
       if(choice.getAttribute("aria-disabled")==="true"){event.preventDefault();return;}
       $("walletChooserHelp").textContent="Opening NERITH inside "+wallet.charAt(0).toUpperCase()+wallet.slice(1)+". Connect from the wallet's in-app browser.";
@@ -1259,21 +1257,6 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     }
     if(pendingExistingWalletVerification){
       const pending=pendingExistingWalletVerification;
-      if(wallet==="phantom"||wallet==="solflare"||wallet==="backpack"){
-        pendingExistingWalletVerification=null;
-        $("walletChooser").hidden=true;
-        $("connectBusinessWallet").setAttribute("aria-expanded","false");
-        $("walletChooserHelp").textContent="Opening "+wallet.charAt(0).toUpperCase()+wallet.slice(1)+". Return to this dashboard inside that wallet and retry ownership verification.";
-        const target=encodeURIComponent(currentUrl);
-        const ref=encodeURIComponent(origin);
-        const links={
-          phantom:"https://phantom.app/ul/browse/"+target+"?ref="+ref,
-          solflare:"https://solflare.com/ul/v1/browse/"+target+"?ref="+ref,
-          backpack:"https://backpack.app/ul/v1/browse/"+target+"?ref="+ref
-        };
-        window.location.assign(links[wallet]);
-        return;
-      }
       $("walletChooser").hidden=true;
       $("connectBusinessWallet").setAttribute("aria-expanded","false");
       pending.button.disabled=true;
