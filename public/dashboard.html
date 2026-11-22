@@ -535,8 +535,9 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
   async function verifyWalletOwnershipWithWallet(walletId,address,button,preferredWallet="") {
     button.disabled=true;
     try{
-      const challenge=walletOwnershipChallenges.get(walletId);
-      if(!challenge)throw new Error("The signing request is not ready yet. Wait for the verification prompt to finish preparing, then try again.");
+      // Reuse a still-valid challenge or fetch a fresh one if app switching
+      // or a delayed signature prompt allowed the previous challenge to expire.
+      const challenge=await prepareWalletOwnershipChallenge(walletId,address);
       if(challenge.address!==address)throw new Error("The server challenge no longer matches this registered wallet. Refresh and try again.");
       const signatureBytes=await signOwnershipChallenge(address,challenge.message,preferredWallet);
       let binary="";for(const byte of signatureBytes)binary+=String.fromCharCode(byte);
