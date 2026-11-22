@@ -1222,7 +1222,9 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
       // The next tap on a wallet option can then launch/connect synchronously.
       await ensureSolanaNetworkConfig();
       chooser.dataset.networkReady="true";
-      const target=encodeURIComponent(window.location.href);
+      const handoffUrl=new URL(window.location.href);
+      if(pendingExistingWalletVerification?.walletId)handoffUrl.searchParams.set("nerithWalletVerification",pendingExistingWalletVerification.walletId);
+      const target=encodeURIComponent(handoffUrl.toString());
       const ref=encodeURIComponent(window.location.origin);
       const appLinks={
         phantom:"https://phantom.app/ul/browse/"+target+"?ref="+ref,
@@ -1383,6 +1385,7 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     const card=button.closest(".wallet-card");
     const help=card?.querySelector(".wallet-role-help");
     pendingExistingWalletVerification={button,walletId:button.dataset.verifyWallet,address:button.dataset.address,help};
+    try{sessionStorage.setItem("nerithPendingWalletVerification",JSON.stringify({walletId:button.dataset.verifyWallet,address:button.dataset.address}));}catch{}
     const connectPanel=$("walletConnectPanel");
     if(connectPanel){connectPanel.hidden=false;connectPanel.scrollIntoView({behavior:"smooth",block:"center"});}
     // Reuse the normal chooser-open path so network and wallet adapters are
@@ -1518,6 +1521,26 @@ $("startTourBanner").addEventListener("click",openTour);$("tourLaunch").addEvent
       state.businessId=session.businessId;
       state.role=session.role;
       await loadAll();
+      const handoffWalletId=new URLSearchParams(location.search).get("nerithWalletVerification");
+      let savedPending=null;
+      try{savedPending=JSON.parse(sessionStorage.getItem("nerithPendingWalletVerification")||"null");}catch{}
+      const resumeWalletId=handoffWalletId||savedPending?.walletId||"";
+      if(resumeWalletId){
+        const wallet=state.wallets.find(item=>item.walletId===resumeWalletId&&item.scope==="business"&&item.status==="active");
+        if(wallet&&!wallet.ownershipVerifiedAt&&["owner","admin"].includes(state.role)){
+          const verifyButton=[...document.querySelectorAll("[data-verify-wallet]")].find(item=>item.dataset.verifyWallet===wallet.walletId);
+          const help=verifyButton?.closest(".wallet-card")?.querySelector(".wallet-role-help");
+          if(verifyButton){
+            pendingExistingWalletVerification={button:verifyButton,walletId:wallet.walletId,address:wallet.address,help};
+            try{sessionStorage.setItem("nerithPendingWalletVerification",JSON.stringify({walletId:wallet.walletId,address:wallet.address}));}catch{}
+            if(help)help.textContent="Wallet app handoff detected. Choose Wallet in this browser to connect this exact address, then sign the ownership message.";
+            const panel=$("walletConnectPanel");
+            if(panel){panel.hidden=false;panel.scrollIntoView({behavior:"smooth",block:"center"});}
+            $("walletChooser").hidden=true;
+            $("connectBusinessWallet").click();
+          }
+        }
+      }
     }catch(error){showError("Could not verify your dashboard session: "+String(error.message||error),"accessError");}
   }
   if(window.NERITH_STATIC_DESIGN_PREVIEW===true){
