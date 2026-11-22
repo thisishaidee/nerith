@@ -116,6 +116,9 @@ describe("responsive page source contracts", () => {
     expect(businessDashboardHtml).toContain('solflare:"https://solflare.com/ul/v1/browse/"+target+"?ref="+ref');
     expect(businessDashboardHtml).toContain('backpack:"https://backpack.app/ul/v1/browse/"+target+"?ref="+ref');
     expect(businessDashboardHtml).not.toContain("window.location.assign(links[wallet])");
+    expect(businessDashboardHtml).toContain("Always separate connection from the ownership signature.");
+    expect(businessDashboardHtml).toContain('id="signNewWalletOwnership"');
+    expect(businessDashboardHtml).toContain('id="signExistingWalletOwnership"');
   });
 
   it("routes funding-leg signing through the connected OKX and Jupiter wallet adapters", () => {
