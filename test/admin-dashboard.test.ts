@@ -814,7 +814,9 @@ describe("browser page script syntax", () => {
         expect(html).toContain("pendingWalletVerification={walletId:registeredWalletId,address,preferredWallet}");
         expect(html).toContain("verifyWalletOwnershipWithWallet(registeredWalletId,address,button,preferredWallet)");
         expect(html).toContain('pending.preferredWallet||""');
-        expect(html).toContain("Wallet connected. Approve the ownership message in the wallet app.");
+        expect(html).toContain("Always separate connection from the ownership signature.");
+        expect(html).toContain("signExistingWalletOwnership");
+        expect(html).toContain("awaitingSignature:true");
         expect(html).not.toContain("if(!injected&&window.NERITHOKX?.connect)return await window.NERITHOKX.connect()");
         expect(html).not.toContain("Start the OKX App Connect handoff before awaiting Wallet Standard adapters.");
         const connectFunctionStart=html.indexOf("async function connectSolanaWallet");
