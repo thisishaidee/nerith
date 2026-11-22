@@ -815,12 +815,14 @@ describe("browser page script syntax", () => {
         expect(html).toContain("verifyWalletOwnershipWithWallet(registeredWalletId,address,button,preferredWallet)");
         expect(html).toContain('pending.preferredWallet||""');
         expect(html).toContain("Wallet connected. Approve the ownership message in the wallet app.");
-        expect(html).toContain("if(!injected&&window.NERITHOKX?.connect)return await window.NERITHOKX.connect()");
-        expect(html).toContain("Start the OKX App Connect handoff before awaiting Wallet Standard adapters.");
+        expect(html).not.toContain("if(!injected&&window.NERITHOKX?.connect)return await window.NERITHOKX.connect()");
+        expect(html).not.toContain("Start the OKX App Connect handoff before awaiting Wallet Standard adapters.");
         const connectFunctionStart=html.indexOf("async function connectSolanaWallet");
         const connectFunctionEnd=html.indexOf("async function signOwnershipChallenge",connectFunctionStart);
         const connectFunction=html.slice(connectFunctionStart,connectFunctionEnd);
-        expect(connectFunction.indexOf("if(!injected&&window.NERITHOKX?.connect)")<connectFunction.indexOf("for(const wallet of standardSolanaWallets)")).toBe(true);
+        expect(connectFunction).toContain("if(!solanaNetworkConfigReady)");
+        expect(connectFunction).not.toContain("await ensureSolanaNetworkConfig()");
+        expect(connectFunction).not.toContain("if(!injected&&window.NERITHOKX?.connect)");
         expect(html).toContain("pendingExistingWalletVerification={button,walletId:button.dataset.verifyWallet,address:button.dataset.address,help}");
         expect(html).toContain('const connectedAddress=await connectSolanaWallet(wallet==="browser"?"":wallet,pending.address)');
         expect(html).toContain("Choose the wallet that owns this exact address.");
