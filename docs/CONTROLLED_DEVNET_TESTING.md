@@ -10,7 +10,7 @@
 - Never deploy the local-only `wrangler.devnet.toml` file. Never replace the remote test Worker or D1 identifiers with production values.
 - Use a dedicated low-balance devnet test wallet. Never use a primary treasury wallet.
 - Keep local `.dev.vars` files untracked. Never paste secrets, seed phrases or private keys into chat, issues, logs or screenshots.
-- The remote test Worker has its own `ADMIN_BOOTSTRAP_TOKEN` secret configured. Its value is not readable through the Cloudflare API. Use the securely stored value; if it is unavailable, rotate only the devnet test secret in Cloudflare. Never reuse the production token.
+- A secret named `ADMIN_BOOTSTRAP_TOKEN` exists on the remote test Worker, but Cloudflare does not expose its value through the API, so its uniqueness from the production token cannot be verified here. Confirm it is a test-only value before use; if uncertain, rotate only the devnet test secret in Cloudflare. Never reuse the production token.
 
 ## Remote Android test endpoint
 
