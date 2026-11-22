@@ -812,7 +812,7 @@ describe("browser page script syntax", () => {
         expect(html).toContain("const connectedAddress=await connectSolanaWallet(wallet===");
         expect(html).toContain("connectedAddress!==pending.address");
         expect(html).toContain("pendingWalletVerification={walletId:registeredWalletId,address,preferredWallet}");
-        expect(html).toContain("verifyWalletOwnershipWithWallet(registeredWalletId,address,button,preferredWallet)");
+        expect(html).toContain('verifyWalletOwnershipWithWallet(pending.walletId,pending.address,button,pending.preferredWallet||"")');
         expect(html).toContain('pending.preferredWallet||""');
         expect(html).toContain("Always separate connection from the ownership signature.");
         expect(html).toContain("signExistingWalletOwnership");
@@ -827,7 +827,7 @@ describe("browser page script syntax", () => {
         expect(connectFunction).not.toContain("if(!injected&&window.NERITHOKX?.connect)");
         expect(html).toContain("pendingExistingWalletVerification={button,walletId:button.dataset.verifyWallet,address:button.dataset.address,help}");
         expect(html).toContain('const connectedAddress=await connectSolanaWallet(wallet==="browser"?"":wallet,pending.address)');
-        expect(html).toContain("Choose the wallet that owns this exact address.");
+        expect(html).toContain("Choose the wallet that controls this exact address.");
          expect(html).toContain("async function signOwnershipChallenge(address,message,preferredWallet=\"\")");
          expect(html).toContain('if(preferredWallet==="jupiter"){');
          expect(html).toContain('return await window.NERITHJUPITER.signMessage(message,address);');
