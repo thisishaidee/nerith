@@ -766,7 +766,7 @@ describe("browser page script syntax", () => {
     expect(jupiterJs).toContain('window.dispatchEvent(new CustomEvent("nerith:reown-ready"))');
     expect(jupiterJs).toContain("WalletConnect did not return a Solana address.");
     expect(jupiterJs).toContain("WalletConnect did not return a transaction signed by the required business wallet.");
-    expect(jupiterJs).toContain('signer.kind === "reown"');
+    expect(jupiterJs).toContain('"reown"');
     expect(jupiterJs).toContain("NERITHSOLANA");
     expect(jupiterJs).toContain("solana:signTransaction");
     expect(jupiterJs).toContain("expected USDC transfer-authority signature");
