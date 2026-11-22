@@ -1009,6 +1009,8 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
       await prepareWalletOwnershipChallenge(registeredWalletId,address);
       pendingWalletVerification={walletId:registeredWalletId,address,preferredWallet};
       status.innerHTML='Wallet connected and registered. Tap <button type="button" class="btn primary" id="signNewWalletOwnership">Sign ownership message</button> to confirm address control. This signature does not move funds.';
+      const signButton=status.querySelector("#signNewWalletOwnership");
+      signButton?.addEventListener("click",()=>handleNewWalletOwnershipSignature(signButton));
       return;
     }catch(error){
       const message=String(error.message||error);
@@ -1278,40 +1280,32 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     window.NERITHREOWN?.setChain?.(activeSolanaChain);
     reown.disabled=activeSolanaChain!==SOLANA_MAINNET_CHAIN||!window.NERITHREOWN?.connect;
   });
-  // Delegate from the actual button element rather than relying on the raw
-  // event target. Mobile browsers and embedded wallet webviews can report a
-  // nested target, so exact event.target.id checks can silently miss the tap.
-  document.addEventListener("click",async event=>{
-    const target=event.target instanceof Element?event.target:null;
-    const newWalletButton=target?.closest("#signNewWalletOwnership");
-    if(newWalletButton&&pendingWalletVerification){
-      event.preventDefault();
-      const button=newWalletButton;
-      const pending=pendingWalletVerification;
-      button.disabled=true;
-      try{
-        await verifyWalletOwnershipWithWallet(pending.walletId,pending.address,button,pending.preferredWallet||"");
-        pendingWalletVerification=null;
-        $("walletConnectStatus").textContent="Wallet connected and ownership verified. You can now assign its business role below.";
-      }catch(error){
-        showError("Wallet ownership verification failed: "+String(error.message||error));
-        button.disabled=false;
-      }
-      return;
-    }
-    const existingButton=target?.closest("#signExistingWalletOwnership");
-    if(!existingButton||!pendingExistingWalletVerification?.awaitingSignature)return;
-    event.preventDefault();
-    const pending=pendingExistingWalletVerification;
-    existingButton.disabled=true;
+  async function handleNewWalletOwnershipSignature(button){
+    if(!pendingWalletVerification)return;
+    button.disabled=true;button.textContent="Signing ownership message…";
     try{
-      await verifyWalletOwnershipWithWallet(pending.walletId,pending.address,existingButton,pending.preferredWallet||"");
-      pendingExistingWalletVerification=null;
+      const pending=pendingWalletVerification;
+      await verifyWalletOwnershipWithWallet(pending.walletId,pending.address,button,pending.preferredWallet||"");
+      pendingWalletVerification=null;
+      $("walletConnectStatus").textContent="Wallet connected and ownership verified. You can now assign its business role below.";
     }catch(error){
       showError("Wallet ownership verification failed: "+String(error.message||error));
-      existingButton.disabled=false;
+      button.disabled=false;button.textContent="Retry ownership signature";
     }
-  });
+  }
+  async function handleExistingWalletOwnershipSignature(button){
+    if(!pendingExistingWalletVerification?.awaitingSignature)return;
+    button.disabled=true;button.textContent="Signing ownership message…";
+    try{
+      const pending=pendingExistingWalletVerification;
+      await verifyWalletOwnershipWithWallet(pending.walletId,pending.address,button,pending.preferredWallet||"");
+      pendingExistingWalletVerification=null;
+      try{sessionStorage.removeItem("nerithPendingWalletVerification");}catch{}
+    }catch(error){
+      showError("Wallet ownership verification failed: "+String(error.message||error));
+      button.disabled=false;button.textContent="Retry ownership signature";
+    }
+  }
 
   $("walletChooser")?.addEventListener("click",async event=>{
     const choice=event.target.closest("[data-wallet-choice]");
@@ -1340,7 +1334,11 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
         pendingExistingWalletVerification={...pending,preferredWallet:wallet,awaitingSignature:true};
         pending.button.disabled=false;
         pending.button.textContent="Wallet connected";
-        if(pending.help)pending.help.innerHTML='Wallet connected. Tap <button type="button" class="btn primary" id="signExistingWalletOwnership">Sign ownership message</button> to confirm address control. This signature does not move funds.';
+        if(pending.help){
+          pending.help.innerHTML='Wallet connected. Tap <button type="button" class="btn primary" id="signExistingWalletOwnership">Sign ownership message</button> to confirm address control. This signature does not move funds.';
+          const signButton=pending.help.querySelector("#signExistingWalletOwnership");
+          signButton?.addEventListener("click",()=>handleExistingWalletOwnershipSignature(signButton));
+        }
         return;
       }catch(error){
         const message=String(error.message||error);
