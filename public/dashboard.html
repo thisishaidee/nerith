@@ -1322,9 +1322,11 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     pendingExistingWalletVerification={button,walletId:button.dataset.verifyWallet,address:button.dataset.address,help};
     const connectPanel=$("walletConnectPanel");
     if(connectPanel){connectPanel.hidden=false;connectPanel.scrollIntoView({behavior:"smooth",block:"center"});}
-    $("walletChooser").hidden=false;
-    $("connectBusinessWallet").setAttribute("aria-expanded","true");
-    $("walletChooserHelp").textContent="Choose the wallet that controls this exact address. Connect with the matching wallet, then tap the separate Sign ownership message action.";
+    // Reuse the normal chooser-open path so network and wallet adapters are
+    // prepared before the user taps a provider during existing-wallet checks.
+    $("walletChooser").hidden=true;
+    $("connectBusinessWallet").click();
+    $("walletChooserHelp").textContent="Preparing the wallet connection. Choose the wallet that controls this exact address once the options are ready.";
     if(help)help.textContent="Choose the wallet that controls this exact address. You will sign a separate ownership message; no transaction or network fee is involved.";
     return;
   });
