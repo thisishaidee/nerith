@@ -16,7 +16,7 @@ The isolated test Worker is deployed at `https://nerith-mainnet-testing.haideeco
 
 ## One-time test access setup
 
-The test Worker intentionally has no copied production bootstrap credential. Before creating a test workspace, add a new secret named `ADMIN_BOOTSTRAP_TOKEN` to the `nerith-mainnet-testing` Worker in Cloudflare. Generate a fresh random value, save it securely, and enter that same value in the test website's existing-workspace/setup flow when prompted. Do not reuse the production token and do not paste the value into chat or GitHub. This is the only remaining setup step before workspace creation.
+The isolated `nerith-mainnet-testing` Worker has its own `ADMIN_BOOTSTRAP_TOKEN` secret configured in Cloudflare; it is separate from the production credential. The secret value cannot be read back through the Cloudflare API. Use the securely stored test value in the isolated test website's setup flow. If the value is unavailable, rotate only the isolated test Worker secret in Cloudflare. Never reuse the production token or paste any token into chat or GitHub.
 
 ## Wallet safety
 
