@@ -842,7 +842,9 @@ describe("browser page script syntax", () => {
          expect(html).toContain("const provider=window.okxwallet?.solana;");
          expect(html).toContain('provider.signMessage(new TextEncoder().encode(message),"utf8")');
          expect(html).toContain("The connected OKX account does not match this registered wallet.");
-         expect(html).toContain('verifyWalletOwnershipWithWallet(pending.walletId,pending.address,pending.button,pending.preferredWallet||"")');
+         expect(html).toContain('verifyWalletOwnershipWithWallet(pending.walletId,pending.address,existingButton,pending.preferredWallet||"")');
+        expect(html).toContain('target?.closest("#signNewWalletOwnership")');
+        expect(html).toContain('target?.closest("#signExistingWalletOwnership")');
         expect(html).toContain('async function connectSolanaWallet(preferredWallet="",expectedAddress="")');
         expect(html).toContain("return await window.NERITHJUPITER.connect(expectedAddress);");
         expect(html).toContain('connectSolanaWallet(wallet==="browser"?"":wallet,pending.address)');
