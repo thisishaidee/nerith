@@ -30,6 +30,7 @@ SELECT
   id, business_id, wallet_id, address, origin,
   CASE network
     WHEN 'solana:mainnet-beta' THEN 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
+    WHEN 'solana:devnet' THEN 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1'
     ELSE network
   END,
   message, nonce_hash, signature_hash, issued_at, expires_at, consumed_at, verified_at, created_at
