@@ -7,7 +7,7 @@
     "@reown/appkit": "1.8.24",
     "@reown/appkit-adapter-solana": "1.8.24",
     "@reown/appkit-wallet-button": "1.8.24",
-    "@solana/wallet-adapter-base": "0.9.23",
+    "@solana/wallet-adapter-base": "0.9.27",
     "@solana/wallet-adapter-react": "0.15.39",
     "@solana/web3.js": "1.98.4",
     "next": "14.2.35",
@@ -26,6 +26,7 @@
     "@reown/appkit-scaffold-ui": "1.8.24",
     "@reown/appkit-ui": "1.8.24",
     "@reown/appkit-utils": "1.8.24",
-    "@reown/appkit-wallet": "1.8.24"
+    "@reown/appkit-wallet": "1.8.24",
+    "@solana/wallet-adapter-base": "0.9.27"
   }
 }
