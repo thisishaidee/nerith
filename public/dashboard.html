@@ -1178,6 +1178,8 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
 
     const choices=[...chooser.querySelectorAll("[data-wallet-choice]")];
     const choiceFor=name=>choices.find(choice=>choice.dataset.walletChoice===name);
+    const okxChoice=choiceFor("okx");
+    if(okxChoice)okxChoice.title="";
     choices.forEach(choice=>choice.disabled=true);
     chooser.dataset.networkReady="false";
     $("walletChooserHelp").textContent="Preparing the secure wallet connection and confirming the Solana network…";
