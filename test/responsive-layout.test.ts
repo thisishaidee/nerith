@@ -109,7 +109,7 @@ describe("responsive page source contracts", () => {
     expect(businessDashboardHtml).toContain('const choices=[...chooser.querySelectorAll("[data-wallet-choice]")]');
     expect(businessDashboardHtml).toContain("await ensureSolanaNetworkConfig()");
     expect(businessDashboardHtml).toContain('chooser.dataset.networkReady="true"');
-    expect(businessDashboardHtml).toContain('choice.disabled=!window.NERITHJUPITER?.connect');
+    expect(businessDashboardHtml).toContain('setDisabled(choice,!window.NERITHJUPITER?.connect)');
     expect(businessDashboardHtml).toContain('window.addEventListener("nerith:jupiter-ready"');
     expect(businessDashboardHtml).toContain('<a class="wallet-choice" data-wallet-choice="phantom"');
     expect(businessDashboardHtml).toContain('phantom:"https://phantom.app/ul/browse/"+target+"?ref="+ref');
