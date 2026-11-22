@@ -11,6 +11,17 @@ const DEVNET_CHAIN = "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1";
 let activeChain = MAINNET_CHAIN;
 const preparedX402Transactions = new Map();
 
+function walletStage(label, operation, timeoutMs = 45000) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(label + " timed out after " + Math.round(timeoutMs / 1000) + " seconds. Close the wallet prompt and reconnect.")), timeoutMs);
+  });
+  return Promise.race([Promise.resolve().then(operation), timeout]).catch(error => {
+    console.error("[NERITH wallet] " + label + " failed", error?.stack || error);
+    throw new Error(label + " failed: " + (error?.message || String(error)));
+  }).finally(() => clearTimeout(timeoutId));
+}
+
 function JupiterWalletRoot() {
   const { reownAdapter, jupiterAdapter } = useWrappedReownAdapter({
     appKitOptions: {
@@ -54,7 +65,7 @@ function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
         if (activeChain !== MAINNET_CHAIN) {
           throw new Error("WalletConnect mobile signing is currently enabled for mainnet only.");
         }
-        await reownAdapter.connect();
+        await walletStage("WalletConnect connection", () => reownAdapter.connect());
         const address = reownAdapter.publicKey?.toBase58?.() || "";
         if (!address) throw new Error("WalletConnect did not return a Solana address.");
         if (expectedAddress && address !== expectedAddress) {
@@ -76,7 +87,7 @@ function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
         if (!api.connected || api.getAddress() !== expectedAddress) {
           throw new Error("The WalletConnect session does not match the registered wallet address. Reconnect the matching account and retry.");
         }
-        const signature = await reownAdapter.signMessage(new TextEncoder().encode(message));
+        const signature = await walletStage("WalletConnect ownership signature", () => reownAdapter.signMessage(new TextEncoder().encode(message)));
         if (!(signature instanceof Uint8Array) || signature.length !== 64) {
           throw new Error("WalletConnect returned an unsupported message-signature format.");
         }
@@ -136,7 +147,7 @@ function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
           }
           await adapter.disconnect();
         }
-        await adapter.connect();
+        await walletStage("Jupiter Mobile connection", () => adapter.connect());
         const address = adapter.publicKey?.toBase58?.() || "";
         if (!address) throw new Error("Jupiter Mobile connected without returning a Solana address.");
         if (expectedAddress && address !== expectedAddress) {
@@ -158,7 +169,7 @@ function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
         if (typeof adapter.signMessage !== "function") {
           throw new Error("Jupiter Mobile did not expose message signing for this session.");
         }
-        const signature = await adapter.signMessage(new TextEncoder().encode(message));
+        const signature = await walletStage("Jupiter Mobile ownership signature", () => adapter.signMessage(new TextEncoder().encode(message)));
         if (!(signature instanceof Uint8Array) || signature.length !== 64) {
           throw new Error("Jupiter Mobile returned an unsupported message-signature format.");
         }
