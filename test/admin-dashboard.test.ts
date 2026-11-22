@@ -762,6 +762,9 @@ describe("browser page script syntax", () => {
     const jupiterJs = await jupiterResponse.text();
     expect(jupiterJs).toContain("NERITHJUPITER");
     expect(jupiterJs).toContain("NERITHREOWN");
+    expect(jupiterJs).toContain("await reownAdapter.connect()");
+    expect(jupiterJs).toContain('window.dispatchEvent(new CustomEvent("nerith:reown-ready"))');
+    expect(jupiterJs).toContain("WalletConnect did not return a Solana address.");
     expect(jupiterJs).toContain("WalletConnect did not return a transaction signed by the required business wallet.");
     expect(jupiterJs).toContain('signer.kind === "reown"');
     expect(jupiterJs).toContain("NERITHSOLANA");
@@ -857,6 +860,8 @@ describe("browser page script syntax", () => {
         expect(html).toContain("window.NERITHJUPITER?.connect");
         expect(html).toContain("window.NERITHREOWN?.connect");
         expect(html).toContain('preferredWallet==="reown"');
+        expect(html).toContain("window.NERITHREOWN.connect(expectedAddress)");
+        expect(html).toContain("window.NERITHREOWN.signFundingTransaction(transaction, signerAddress)");
         expect(html).toContain("window.NERITHREOWN.signMessage");
         expect(html).toContain("window.NERITHJUPITER.signMessage");
         expect(html).toContain("window.NERITHSOLANA");
