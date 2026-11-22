@@ -10,7 +10,7 @@ Telegram is intended to be a first-class transaction surface. The Bot handles re
 
 ## Platform requirement
 
-Wallet handoff is platform-neutral. Android is an early test target because the project is being developed and validated on an Android device; it is not the product's platform boundary. The table below describes target adapter strategies, not verified implementations. The dashboard signing path supports Wallet Standard plus the explicit OKX and Jupiter Mobile adapters. WalletConnect-specific session handling and platform-specific deep-link adapters remain future work.
+Wallet handoff is platform-neutral. Android is an early test target because the project is being developed and validated on an Android device; it is not the product's platform boundary. The table below describes target adapter strategies, not verified implementations. The dashboard signing path supports Wallet Standard plus explicit OKX and Jupiter Mobile adapters. For Android navigation, Phantom, Solflare and Backpack choices now use direct wallet universal links that open NERITH inside each wallet's DApp browser; the user then connects from that in-app browser. This is a DApp-browser route, not a generic WalletConnect session from the external browser. Generic WalletConnect session handling and verified device return paths remain future work.
 
 | Surface | Connection strategy | Required return path |
 |---|---|---|
