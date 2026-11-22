@@ -438,7 +438,7 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
       }
     }
     const provider=getInjectedSolanaProvider();
-    if(!provider)throw new Error("No compatible Solana wallet was detected. Open NERITH inside OKX Wallet, or retry the OKX app handoff.");
+    if(!provider)throw new Error("No compatible Solana wallet was detected in this browser. Open NERITH inside your wallet app, or choose WalletConnect to connect a compatible mobile wallet.");
     const connected=await provider.connect();
     const address=connected?.publicKey?.toString?.()||provider.publicKey?.toString?.()||"";
     if(!address)throw new Error("The wallet connected but did not return a public address.");
