@@ -111,6 +111,11 @@ describe("responsive page source contracts", () => {
     expect(businessDashboardHtml).toContain('chooser.dataset.networkReady="true"');
     expect(businessDashboardHtml).toContain('setDisabled(choice,!window.NERITHJUPITER?.connect)');
     expect(businessDashboardHtml).toContain('window.addEventListener("nerith:jupiter-ready"');
+    const enableChoicesIndex=businessDashboardHtml.indexOf("choices.forEach(choice=>{",businessDashboardHtml.indexOf("const appLinks="));
+    const initializeOkxIndex=businessDashboardHtml.indexOf("await okx();");
+    expect(enableChoicesIndex).toBeGreaterThan(-1);
+    expect(enableChoicesIndex).toBeLessThan(initializeOkxIndex);
+    expect(businessDashboardHtml).toContain('.wallet-choice[aria-disabled="true"]{opacity:.5;cursor:not-allowed}');
     expect(businessDashboardHtml).toContain('<a class="wallet-choice" data-wallet-choice="phantom"');
     expect(businessDashboardHtml).toContain('phantom:"https://phantom.app/ul/browse/"+target+"?ref="+ref');
     expect(businessDashboardHtml).toContain('solflare:"https://solflare.com/ul/v1/browse/"+target+"?ref="+ref');
