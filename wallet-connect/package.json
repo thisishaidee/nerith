@@ -14,5 +14,18 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "@solana/spl-token": "0.4.14"
+  },
+  "overrides": {
+    "@reown/appkit": "1.8.24",
+    "@reown/appkit-adapter-solana": "1.8.24",
+    "@reown/appkit-wallet-button": "1.8.24",
+    "@reown/appkit-common": "1.8.24",
+    "@reown/appkit-controllers": "1.8.24",
+    "@reown/appkit-pay": "1.8.24",
+    "@reown/appkit-polyfills": "1.8.24",
+    "@reown/appkit-scaffold-ui": "1.8.24",
+    "@reown/appkit-ui": "1.8.24",
+    "@reown/appkit-utils": "1.8.24",
+    "@reown/appkit-wallet": "1.8.24"
   }
 }
