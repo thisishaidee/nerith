@@ -195,6 +195,9 @@ function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
         if (signer.kind === "jupiter" && (!adapter.connected || adapter.publicKey?.toBase58?.() !== expectedAddress)) {
           throw new Error("The active Jupiter Mobile session does not match the registered x402 payment wallet.");
         }
+        if (signer.kind === "reown" && (!window.NERITHREOWN?.connected || window.NERITHREOWN.getAddress() !== expectedAddress)) {
+          throw new Error("The active WalletConnect session does not match the registered x402 payment wallet.");
+        }
         if (signer.kind === "okx" && (!window.NERITHOKX?.connected || window.NERITHOKX.getAddress() !== expectedAddress)) {
           throw new Error("The active OKX session does not match the registered x402 payment wallet.");
         }
@@ -205,11 +208,14 @@ function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
             !signer.wallet?.features?.["solana:signTransaction"]?.signTransaction)) {
           throw new Error("The selected Wallet Standard account cannot sign Solana transactions.");
         }
-        if (!["jupiter", "okx", "injected", "standard"].includes(signer.kind)) {
+        if (!["jupiter", "reown", "okx", "injected", "standard"].includes(signer.kind)) {
           throw new Error("Unsupported Solana wallet signing method.");
         }
         if (signer.kind === "jupiter" && typeof adapter.signTransaction !== "function") {
           throw new Error("Jupiter Mobile did not expose transaction signing for this session.");
+        }
+        if (signer.kind === "reown" && typeof window.NERITHREOWN?.signTransaction !== "function") {
+          throw new Error("WalletConnect did not expose transaction signing for this session.");
         }
         if (!requirement || requirement.scheme !== "exact" || requirement.network !== "solana" ||
             requirement.resource !== "https://hermes.swap.io/v1/swap/quote" ||
@@ -271,6 +277,10 @@ function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
           preparedX402Transactions.delete(preparationId);
           throw new Error("Reconnect Jupiter Mobile to the selected x402 payment wallet, then request a fresh quote.");
         }
+        if (signer.kind === "reown" && (!window.NERITHREOWN?.connected || window.NERITHREOWN.getAddress() !== expectedAddress)) {
+          preparedX402Transactions.delete(preparationId);
+          throw new Error("Reconnect WalletConnect to the selected x402 payment wallet, then request a fresh quote.");
+        }
         if (signer.kind === "okx" && (!window.NERITHOKX?.connected || window.NERITHOKX.getAddress() !== expectedAddress)) {
           preparedX402Transactions.delete(preparationId);
           throw new Error("Reconnect OKX Wallet to the selected x402 payment wallet, then request a fresh quote.");
@@ -291,6 +301,8 @@ function JupiterMobileBridge({ reownAdapter, jupiterAdapter }) {
         let signed;
         if (signer.kind === "jupiter") {
           signed = await adapter.signTransaction(prepared.transaction);
+        } else if (signer.kind === "reown") {
+          signed = await window.NERITHREOWN.signTransaction(prepared.transaction, expectedAddress);
         } else if (signer.kind === "okx") {
           signed = await window.NERITHOKX.signTransaction(prepared.transaction, expectedAddress);
         } else if (signer.kind === "injected") {
