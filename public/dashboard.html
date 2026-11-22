@@ -1324,8 +1324,8 @@ button,input,select{font:inherit}button,a{touch-action:manipulation}a{color:inhe
     if(connectPanel){connectPanel.hidden=false;connectPanel.scrollIntoView({behavior:"smooth",block:"center"});}
     $("walletChooser").hidden=false;
     $("connectBusinessWallet").setAttribute("aria-expanded","true");
-    $("walletChooserHelp").textContent="Choose the wallet that owns this exact address. Select Jupiter Mobile to connect through its secure wallet handoff, then approve the ownership message.";
-    if(help)help.textContent="Choose the wallet that controls this exact address. Jupiter Mobile is supported; no transaction or network fee is involved.";
+    $("walletChooserHelp").textContent="Choose the wallet that controls this exact address. Connect with the matching wallet, then tap the separate Sign ownership message action.";
+    if(help)help.textContent="Choose the wallet that controls this exact address. You will sign a separate ownership message; no transaction or network fee is involved.";
     return;
   });
   document.addEventListener("click",async event=>{
