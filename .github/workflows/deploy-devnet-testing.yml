@@ -10,6 +10,7 @@ on:
       - "migrations/**"
       - "public/dashboard.html"
       - "scripts/**"
+      - "test/**"
       - "package.json"
       - "wrangler.devnet.remote.toml"
 
