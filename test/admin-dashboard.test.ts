@@ -762,7 +762,7 @@ describe("browser page script syntax", () => {
     const jupiterJs = await jupiterResponse.text();
     expect(jupiterJs).toContain("NERITHJUPITER");
     expect(jupiterJs).toContain("NERITHREOWN");
-    expect(jupiterJs).toContain("await reownAdapter.connect()");
+    expect(jupiterJs).toContain('new CustomEvent("nerith:reown-ready")');
     expect(jupiterJs).toContain('window.dispatchEvent(new CustomEvent("nerith:reown-ready"))');
     expect(jupiterJs).toContain("WalletConnect did not return a Solana address.");
     expect(jupiterJs).toContain("WalletConnect did not return a transaction signed by the required business wallet.");
