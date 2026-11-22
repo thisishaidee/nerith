@@ -761,6 +761,9 @@ describe("browser page script syntax", () => {
     expect(jupiterResponse.status).toBe(200);
     const jupiterJs = await jupiterResponse.text();
     expect(jupiterJs).toContain("NERITHJUPITER");
+    expect(jupiterJs).toContain("NERITHREOWN");
+    expect(jupiterJs).toContain("WalletConnect did not return a transaction signed by the required business wallet.");
+    expect(jupiterJs).toContain('signer.kind === "reown"');
     expect(jupiterJs).toContain("NERITHSOLANA");
     expect(jupiterJs).toContain("solana:signTransaction");
     expect(jupiterJs).toContain("expected USDC transfer-authority signature");
@@ -847,11 +850,14 @@ describe("browser page script syntax", () => {
         expect(html).toContain("const existingWallet=state.wallets.find(wallet=>");
         expect(html).toContain("Reusing its existing record; no duplicate will be created.");
         expect(html).toContain("Use a separate Solana address for ");
-        for (const wallet of ["okx", "phantom", "solflare", "backpack", "jupiter", "browser"]) expect(html).toContain('data-wallet-choice="' + wallet + '"');
+        for (const wallet of ["okx", "phantom", "solflare", "backpack", "jupiter", "reown", "browser"]) expect(html).toContain('data-wallet-choice="' + wallet + '"');
         expect(html).not.toContain("jup.ag/wallet");
         expect(html).toContain('id="jupiterWalletMount"');
         expect(html).toContain('src="/assets/jupiter-mobile-connector.js"');
         expect(html).toContain("window.NERITHJUPITER?.connect");
+        expect(html).toContain("window.NERITHREOWN?.connect");
+        expect(html).toContain('preferredWallet==="reown"');
+        expect(html).toContain("window.NERITHREOWN.signMessage");
         expect(html).toContain("window.NERITHJUPITER.signMessage");
         expect(html).toContain("window.NERITHSOLANA");
         expect(html).toContain("getX402WalletSigner");
