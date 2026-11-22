@@ -115,6 +115,7 @@ describe("responsive page source contracts", () => {
     expect(businessDashboardHtml).toContain('phantom:"https://phantom.app/ul/browse/"+target+"?ref="+ref');
     expect(businessDashboardHtml).toContain('solflare:"https://solflare.com/ul/v1/browse/"+target+"?ref="+ref');
     expect(businessDashboardHtml).toContain('backpack:"https://backpack.app/ul/v1/browse/"+target+"?ref="+ref');
+    expect(businessDashboardHtml).not.toContain("window.location.assign(links[wallet])");
   });
 
   it("routes funding-leg signing through the connected OKX and Jupiter wallet adapters", () => {
